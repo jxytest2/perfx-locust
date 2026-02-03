@@ -8,6 +8,11 @@ PerfX Locust - 性能测试平台 Locust 集成工具
 - InfluxDB 数据上报
 """
 
+from gevent import monkey
+
+# 在包导入最早阶段进行 gevent monkey-patch，避免在其他模块已导入后才 patch
+monkey.patch_all()
+
 __version__ = "0.1.0"
 
 from .client import PerfXClient
