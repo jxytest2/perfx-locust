@@ -95,7 +95,7 @@ class PerfXClient:
             TestRunDetail 对象
         """
         logger.debug("[PerfXClient] 获取测试运行详情: %s", run_id)
-        response = self._client.get(f"/api/perf/runs/{run_id}")
+        response = self._client.get(f"/api/evaluation/perf/runs/{run_id}")
         data = self._handle_response(response)
         return TestRunDetail(**data)
 
@@ -120,7 +120,7 @@ class PerfXClient:
             payload["arguments"] = arguments
         
         response = self._client.post(
-            f"/api/perf/runs/{run_id}/start",
+            f"/api/evaluation/perf/runs/{run_id}/start",
             json=payload if payload else None,
         )
         return self._handle_response(response)
@@ -146,7 +146,7 @@ class PerfXClient:
             payload["duration_seconds"] = duration_seconds
         
         response = self._client.post(
-            f"/api/perf/runs/{run_id}/complete",
+            f"/api/evaluation/perf/runs/{run_id}/complete",
             json=payload if payload else None,
         )
         return self._handle_response(response)
@@ -168,7 +168,7 @@ class PerfXClient:
         """
         logger.warning("[PerfXClient] 标记测试运行失败: %s, error: %s", run_id, error_message)
         response = self._client.post(
-            f"/api/perf/runs/{run_id}/fail",
+            f"/api/evaluation/perf/runs/{run_id}/fail",
             json={"error_message": error_message},
         )
         return self._handle_response(response)
@@ -184,7 +184,7 @@ class PerfXClient:
             更新后的测试运行信息
         """
         logger.info("[PerfXClient] 取消测试运行: %s", run_id)
-        response = self._client.post(f"/api/perf/runs/{run_id}/cancel")
+        response = self._client.post(f"/api/evaluation/perf/runs/{run_id}/cancel")
         return self._handle_response(response)
 
     # 别名方法，方便使用

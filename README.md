@@ -142,7 +142,7 @@ perfx -f locustfile.py --run-id xxx --model gpt-4 --batch_size 64
 │                        perfx CLI                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │  1. 解析命令行参数                                               │
-│  2. 获取 TestRun 详情 (GET /api/perf/runs/{run_id})             │
+│  2. 获取 TestRun 详情 (GET /api/evaluation/perf/runs/{run_id})  │
 │  3. 验证必填参数 (根据 argument_schema)                          │
 │  4. 获取环境 host，设置为 Locust 的 --host                       │
 │  5. 调用 /start 标记测试开始，同时保存 arguments                  │
