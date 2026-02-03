@@ -269,7 +269,13 @@ class PerfXRunner:
             if self._locust_parsed_options is not None:
                 self._environment.parsed_options = self._locust_parsed_options
 
-            # 4. 附加事件监听器
+            # 触发 init 事件（脚本依赖此事件初始化配置）
+            self._environment.events.init.fire(
+                environment=self._environment,
+                runner=None,
+            )
+
+            # 5. 附加事件监听器
             self._attach_event_listeners()
 
             # 5. 创建 Runner
