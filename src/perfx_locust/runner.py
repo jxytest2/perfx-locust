@@ -124,15 +124,16 @@ class PerfXRunner:
         sys.modules["locustfile"] = module
         spec.loader.exec_module(module)
 
-        # 提取 User 类
+        # 提取 User 类（排除 abstract 和基础 HttpUser）
+        from locust import HttpUser
         user_classes = []
         for name in dir(module):
             obj = getattr(module, name)
             if (
                     isinstance(obj, type)
                     and issubclass(obj, User)
-                    and obj is not User
-                    and hasattr(obj, "tasks")
+                    and obj not in (User, HttpUser)
+                    and not getattr(obj, "abstract", False)
             ):
                 user_classes.append(obj)
 
