@@ -3,6 +3,10 @@ PerfX CLI - Command Line Interface
 
 提供 `perfx` 命令，用于执行 Locust 性能测试。
 """
+# 必须在最开始执行 gevent monkey-patch，避免与其他库冲突
+from gevent import monkey
+monkey.patch_all()
+
 import logging
 import sys
 from typing import Any, Dict, Optional
