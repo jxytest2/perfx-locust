@@ -152,9 +152,9 @@ def main(
         test_run = client.get_test_run(run_id)
 
         logger.info("[CLI] 测试配置:")
-        logger.info("  - 接口: %s", test_run.endpoint_name or "未知")
-        logger.info("  - 环境: %s", test_run.env_code or "未知")
-        logger.info("  - Host: %s", test_run.host or "未知")
+        logger.info("  - 接口: %s", test_run.endpoint.endpoint_path if test_run.endpoint else "未知")
+        logger.info("  - 环境: %s", test_run.environment.env_name if test_run.environment else "未知")
+        logger.info("  - Host: %s", test_run.get_host() or "未知")
         logger.info("  - 用户数: %s", test_run.users)
         logger.info("  - 生成速率: %s", test_run.spawn_rate)
         logger.info("  - 运行时间: %s", test_run.run_time or "无限制")
@@ -185,7 +185,7 @@ def main(
             print("参数验证成功！以下是将要使用的配置：")
             print("=" * 60)
             print(f"  脚本: {locustfile}")
-            print(f"  Host: {test_run.host}")
+            print(f"  Host: {test_run.get_host()}")
             print(f"  用户数: {test_run.users}")
             print(f"  生成速率: {test_run.spawn_rate}")
             print(f"  运行时间: {test_run.run_time or '无限制'}")
@@ -194,7 +194,8 @@ def main(
             return
 
         # 3. 检查必要配置
-        if not test_run.host:
+        host = test_run.get_host()
+        if not host:
             error_msg = "测试配置中未设置目标 Host"
             logger.error("[CLI] %s", error_msg)
             client.fail_test_run(run_id, error_msg)
@@ -210,7 +211,7 @@ def main(
                 bucket=influxdb_bucket,
                 run_id=run_id,
                 endpoint_id=test_run.endpoint_id,
-                env_code=test_run.env_code,
+                env_code=test_run.environment.env_code if test_run.environment else None,
             )
             if influx_reporter.connect():
                 logger.info("[CLI] InfluxDB 连接成功")
@@ -221,7 +222,7 @@ def main(
         # 5. 创建运行器
         runner = PerfXRunner(
             locustfile=locustfile,
-            host=test_run.host,
+            host=host,
             users=test_run.users,
             spawn_rate=test_run.spawn_rate,
             run_time=test_run.run_time,
