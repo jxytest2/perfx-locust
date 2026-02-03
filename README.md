@@ -15,6 +15,8 @@
 
 ```bash
 pip install git+https://g.hz.netease.com/CloudQA/perfx-locust.git
+# 或者使用 github
+pip install git+https://github.com/jxytest2/perfx-locust.git
 ```
 
 ## 快速开始
