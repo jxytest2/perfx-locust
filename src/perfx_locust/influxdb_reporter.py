@@ -217,14 +217,14 @@ class InfluxDBReporter:
             point = (
                 point
                 .field("user_count", user_count)
-                .field("rps", rps)
-                .field("fail_ratio", fail_ratio)
-                .field("avg_response_time", avg_response_time)
-                .field("min_response_time", min_response_time)
-                .field("max_response_time", max_response_time)
-                .field("median_response_time", median_response_time)
-                .field("p95_response_time", p95_response_time)
-                .field("p99_response_time", p99_response_time)
+                .field("rps", float(rps))
+                .field("fail_ratio", float(fail_ratio))
+                .field("avg_response_time", float(avg_response_time))
+                .field("min_response_time", float(min_response_time))
+                .field("max_response_time", float(max_response_time))
+                .field("median_response_time", float(median_response_time))
+                .field("p95_response_time", float(p95_response_time))
+                .field("p99_response_time", float(p99_response_time))
             )
 
             self._write_api.write(bucket=self.bucket, record=point)
