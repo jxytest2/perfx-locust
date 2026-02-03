@@ -177,7 +177,7 @@ class InfluxDBReporter:
     def write_stats(
         self,
         user_count: int,
-        total_rps: float,
+        rps: float,
         fail_ratio: float,
         avg_response_time: float,
         min_response_time: float,
@@ -188,10 +188,10 @@ class InfluxDBReporter:
     ):
         """
         写入统计数据
-        
+
         Args:
             user_count: 当前用户数
-            total_rps: 总 RPS
+            rps: 每秒请求数
             fail_ratio: 失败率
             avg_response_time: 平均响应时间
             min_response_time: 最小响应时间
@@ -217,7 +217,7 @@ class InfluxDBReporter:
             point = (
                 point
                 .field("user_count", user_count)
-                .field("rps", total_rps)
+                .field("rps", rps)
                 .field("fail_ratio", fail_ratio)
                 .field("avg_response_time", avg_response_time)
                 .field("min_response_time", min_response_time)
