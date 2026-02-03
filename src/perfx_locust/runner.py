@@ -144,15 +144,14 @@ class PerfXRunner:
                     len(user_classes), [c.__name__ for c in user_classes])
         return user_classes
 
-    def _prepare_locust_arguments(self):
-        """触发脚本自定义命令行参数解析"""
+    def _prepare_locust_arguments(self, user_classes: List[type]):
+        """触发脚本自定义命令行参数解析（脚本加载后调用）"""
         from locust import events
 
         parser = argparse.ArgumentParser(add_help=False)
+        # 脚本已加载，其 init_command_line_parser 监听器已注册，现在 fire
         events.init_command_line_parser.fire(parser=parser)
-        parsed_options, unknown = parser.parse_known_args(self.locust_args)
-        if unknown:
-            logger.warning("[Runner] 未识别的 Locust 脚本参数: %s", unknown)
+        parsed_options, _ = parser.parse_known_args(self.locust_args)
         self._locust_parsed_options = parsed_options
 
     def _setup_environment(self):
@@ -254,11 +253,11 @@ class PerfXRunner:
             # 1. 设置环境变量
             self._setup_environment()
 
-            # 2. 加载用户脚本
+            # 2. 加载用户脚本（会注册脚本中的事件监听器）
             user_classes = self._load_locustfile()
 
-            # 3. 解析脚本自定义命令行参数
-            self._prepare_locust_arguments()
+            # 3. 解析脚本自定义命令行参数（脚本加载后 fire init_command_line_parser）
+            self._prepare_locust_arguments(user_classes)
 
             # 4. 创建 Locust Environment
             self._environment = Environment(
@@ -269,8 +268,9 @@ class PerfXRunner:
             if self._locust_parsed_options is not None:
                 self._environment.parsed_options = self._locust_parsed_options
 
-            # 触发 init 事件（脚本依赖此事件初始化配置）
-            self._environment.events.init.fire(
+            # 触发 init 事件（脚本使用全局 events 注册监听器）
+            from locust import events as global_events
+            global_events.init.fire(
                 environment=self._environment,
                 runner=None,
             )
