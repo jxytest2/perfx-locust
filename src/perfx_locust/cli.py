@@ -208,6 +208,8 @@ def main(
         # 4. 创建 InfluxDB 上报器
         influx_reporter = None
         if influxdb_url:
+            # 将命令行参数转换为字符串标签，用于 InfluxDB 筛选
+            arg_tags = {k: str(v) for k, v in resolved_args.items()}
             influx_reporter = InfluxDBReporter(
                 url=influxdb_url,
                 token=influxdb_token,
@@ -215,7 +217,10 @@ def main(
                 bucket=influxdb_bucket,
                 run_id=run_id,
                 endpoint_id=test_run.endpoint_id,
+                endpoint_path=test_run.endpoint.endpoint_path if test_run.endpoint else None,
                 env_code=test_run.environment.env_code if test_run.environment else None,
+                gpu_model=getattr(test_run.environment, 'gpu_model', None) or resolved_args.get("gpu_model"),
+                extra_tags=arg_tags,
             )
             if influx_reporter.connect():
                 logger.info("[CLI] InfluxDB 连接成功")

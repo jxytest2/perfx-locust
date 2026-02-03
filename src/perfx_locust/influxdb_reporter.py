@@ -29,12 +29,14 @@ class InfluxDBReporter:
         bucket: str,
         run_id: str,
         endpoint_id: Optional[str] = None,
+        endpoint_path: Optional[str] = None,
         env_code: Optional[str] = None,
+        gpu_model: Optional[str] = None,
         extra_tags: Optional[Dict[str, str]] = None,
     ):
         """
         初始化上报器
-        
+
         Args:
             url: InfluxDB URL
             token: InfluxDB Token
@@ -42,8 +44,10 @@ class InfluxDBReporter:
             bucket: InfluxDB Bucket
             run_id: 测试运行 ID
             endpoint_id: 接口 ID
+            endpoint_path: 接口路径 (用于筛选)
             env_code: 环境编码
-            extra_tags: 额外的标签
+            gpu_model: GPU 型号 (用于筛选)
+            extra_tags: 额外的标签 (如命令行参数)
         """
         self.url = url
         self.token = token
@@ -51,7 +55,9 @@ class InfluxDBReporter:
         self.bucket = bucket
         self.run_id = run_id
         self.endpoint_id = endpoint_id
+        self.endpoint_path = endpoint_path
         self.env_code = env_code
+        self.gpu_model = gpu_model
         self.extra_tags = extra_tags or {}
         
         self._client: Optional[InfluxDBClient] = None
@@ -104,13 +110,15 @@ class InfluxDBReporter:
 
     def _build_base_tags(self) -> Dict[str, str]:
         """构建基础标签"""
-        tags = {
-            "run_id": self.run_id,
-        }
+        tags = {"run_id": self.run_id}
         if self.endpoint_id:
             tags["endpoint_id"] = self.endpoint_id
+        if self.endpoint_path:
+            tags["endpoint_path"] = self.endpoint_path
         if self.env_code:
             tags["env_code"] = self.env_code
+        if self.gpu_model:
+            tags["gpu_model"] = self.gpu_model
         tags.update(self.extra_tags)
         return tags
 
