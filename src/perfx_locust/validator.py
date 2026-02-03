@@ -31,13 +31,39 @@ class ArgumentValidator:
         self.test_run = test_run
         self.parameters = test_run.get_argument_parameters()
 
+    def _normalize_key(self, key: str) -> str:
+        """将参数名标准化（连字符转下划线）"""
+        return key.replace("-", "_")
+
+    def _get_param_value(self, provided_args: Dict[str, Any], param_name: str) -> Any:
+        """
+        从提供的参数中获取值，支持连字符和下划线两种格式
+
+        Args:
+            provided_args: 用户提供的参数字典
+            param_name: 参数名（可能带连字符）
+
+        Returns:
+            参数值，如果不存在返回 None
+        """
+        # 先尝试原始名称
+        if param_name in provided_args:
+            return provided_args[param_name]
+
+        # 尝试下划线格式
+        underscore_name = self._normalize_key(param_name)
+        if underscore_name in provided_args:
+            return provided_args[underscore_name]
+
+        return None
+
     def validate(self, provided_args: Dict[str, Any]) -> ValidationResult:
         """
         验证参数
-        
+
         Args:
             provided_args: 用户提供的参数字典
-            
+
         Returns:
             ValidationResult 验证结果
         """
@@ -45,7 +71,7 @@ class ArgumentValidator:
         resolved: Dict[str, str] = {}
 
         for param in self.parameters:
-            value = provided_args.get(param.name)
+            value = self._get_param_value(provided_args, param.name)
 
             # 检查必填参数
             if param.required and value is None:
