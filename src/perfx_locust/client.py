@@ -35,7 +35,7 @@ class PerfXClient:
 
     def __init__(
         self,
-        base_url: str = "http://localhost:8000",
+        base_url: str = "https://eval.codewave-test.163yun.com",
         timeout: float = 30.0,
     ):
         """
@@ -65,19 +65,19 @@ class PerfXClient:
 
     def _handle_response(self, response: httpx.Response) -> Dict[str, Any]:
         """处理响应"""
+        # 先尝试解析 JSON，处理空响应的情况
+        try:
+            data = response.json() if response.text.strip() else {}
+        except Exception:
+            data = {}
+
         if response.status_code == 404:
-            data = response.json()
             raise PerfXNotFoundError(data.get("message", "资源不存在"))
-        
+
         if response.status_code >= 400:
-            try:
-                data = response.json()
-                message = data.get("message", response.text)
-            except Exception:
-                message = response.text
+            message = data.get("message", response.text) if data else response.text
             raise PerfXClientError(f"API 请求失败: {response.status_code} - {message}")
-        
-        data = response.json()
+
         # 假设 API 返回格式为 {"code": 0, "data": {...}, "message": "..."}
         if data.get("code") != 0:
             raise PerfXClientError(data.get("message", "未知错误"))

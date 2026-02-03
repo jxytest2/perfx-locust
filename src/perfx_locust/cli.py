@@ -77,7 +77,7 @@ def parse_extra_args(args: tuple) -> Dict[str, Any]:
 @click.option(
     "--platform-url",
     envvar="PERFX_PLATFORM_URL",
-    default="http://localhost:8000",
+    default="https://eval.codewave-test.163yun.com",
     help="性能测试平台 URL",
 )
 @click.option(

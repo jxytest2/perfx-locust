@@ -61,15 +61,11 @@ class ShapeStep(BaseModel):
 
 
 class TestRunDetail(BaseModel):
-    """测试运行详情"""
+    """测试运行详情 - 与后端 TestRunDetailResponse 对齐"""
     run_id: str
     endpoint_id: Optional[str] = None
-    endpoint_name: Optional[str] = None
-    env_code: Optional[str] = None
-    host: Optional[str] = None
     endpoint: Optional[EndpointInfo] = None
     environment: Optional[EnvironmentInfo] = None
-    argument_schema: Optional[Dict[str, Any]] = None
     users: Optional[int] = None
     spawn_rate: Optional[float] = None
     run_time: Optional[str] = None
@@ -91,12 +87,7 @@ class TestRunDetail(BaseModel):
         return None
 
     def get_argument_parameters(self) -> List[ArgumentParameter]:
-        """获取参数定义列表"""
-        # 优先使用直接返回的 argument_schema
-        if self.argument_schema:
-            params_data = self.argument_schema.get("parameters", [])
-            return [ArgumentParameter(**p) for p in params_data]
-        # 否则从 endpoint 获取
+        """获取参数定义列表（从 endpoint 中获取）"""
         if self.endpoint:
             return self.endpoint.get_parameters()
         return []
