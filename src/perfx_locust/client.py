@@ -78,8 +78,8 @@ class PerfXClient:
             message = data.get("message", response.text) if data else response.text
             raise PerfXClientError(f"API 请求失败: {response.status_code} - {message}")
 
-        # 假设 API 返回格式为 {"code": 0, "data": {...}, "message": "..."}
-        if data.get("code") != 0:
+        # API 返回格式: {"success": true, "data": {...}, "message": "..."}
+        if not data.get("success"):
             raise PerfXClientError(data.get("message", "未知错误"))
         
         return data.get("data", {})
