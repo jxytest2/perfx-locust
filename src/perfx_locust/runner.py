@@ -3,6 +3,7 @@ PerfX Runner - Locust Execution Engine
 
 核心运行器，负责加载用户脚本、配置环境、执行测试并同步状态。
 """
+import argparse
 import importlib.util
 import logging
 import os
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 class PerfXRunner:
     """
     PerfX 运行器
-    
+
     包装 Locust 执行流程，提供：
     - 用户脚本加载
     - 配置注入
@@ -35,10 +36,11 @@ class PerfXRunner:
             run_time: Optional[str] = None,
             run_id: Optional[str] = None,
             extra_args: Optional[Dict[str, str]] = None,
+            locust_args: Optional[List[str]] = None,
     ):
         """
         初始化运行器
-        
+
         Args:
             locustfile: Locust 脚本路径
             host: 目标主机地址
@@ -55,6 +57,7 @@ class PerfXRunner:
         self.run_time = run_time
         self.run_id = run_id
         self.extra_args = extra_args or {}
+        self.locust_args = locust_args or []
 
         # 回调函数
         self._on_start: Optional[Callable[[], None]] = None
@@ -62,6 +65,8 @@ class PerfXRunner:
         self._on_fail: Optional[Callable[[str], None]] = None
         self._on_request: Optional[Callable[[dict], None]] = None
         self._on_stats: Optional[Callable[[dict], None]] = None
+
+        self._locust_parsed_options = None
 
         # 状态
         self._environment = None
@@ -97,7 +102,7 @@ class PerfXRunner:
     def _load_locustfile(self) -> List[type]:
         """
         加载 Locust 脚本
-        
+
         Returns:
             User 类列表
         """
@@ -137,6 +142,17 @@ class PerfXRunner:
         logger.info("[Runner] 加载了 %d 个 User 类: %s",
                     len(user_classes), [c.__name__ for c in user_classes])
         return user_classes
+
+    def _prepare_locust_arguments(self):
+        """触发脚本自定义命令行参数解析"""
+        from locust import events
+
+        parser = argparse.ArgumentParser(add_help=False)
+        events.init_command_line_parser.fire(parser=parser)
+        parsed_options, unknown = parser.parse_known_args(self.locust_args)
+        if unknown:
+            logger.warning("[Runner] 未识别的 Locust 脚本参数: %s", unknown)
+        self._locust_parsed_options = parsed_options
 
     def _setup_environment(self):
         """设置额外参数为环境变量"""
@@ -223,7 +239,7 @@ class PerfXRunner:
     def run(self) -> bool:
         """
         执行测试
-        
+
         Returns:
             测试是否成功完成
         """
@@ -240,11 +256,17 @@ class PerfXRunner:
             # 2. 加载用户脚本
             user_classes = self._load_locustfile()
 
-            # 3. 创建 Locust Environment
+            # 3. 解析脚本自定义命令行参数
+            self._prepare_locust_arguments()
+
+            # 4. 创建 Locust Environment
             self._environment = Environment(
                 user_classes=user_classes,
                 host=self.host,
             )
+
+            if self._locust_parsed_options is not None:
+                self._environment.parsed_options = self._locust_parsed_options
 
             # 4. 附加事件监听器
             self._attach_event_listeners()
